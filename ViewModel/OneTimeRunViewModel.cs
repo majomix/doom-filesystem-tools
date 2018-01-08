@@ -40,6 +40,7 @@ namespace DoomFileSystemTools.ViewModel
             if (myTargetDirectory != null && LoadedFilePath != null)
             {
                 LoadStructure();
+                ExtractFile(myTargetDirectory);
             }
         }
 

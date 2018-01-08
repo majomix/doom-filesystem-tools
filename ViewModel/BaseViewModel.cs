@@ -1,7 +1,9 @@
 ﻿using DoomFileSystemTools.Model;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 
 namespace DoomFileSystemTools.ViewModel
 {
@@ -90,13 +92,24 @@ namespace DoomFileSystemTools.ViewModel
 
         public void ExtractFile(string directory)
         {
-            using (DoomBinaryReader reader = new DoomBinaryReader(File.Open(LoadedFilePath, FileMode.Open)))
+            using (DoomBinaryReader reader = new DoomBinaryReader(File.Open(Path.ChangeExtension(LoadedFilePath, ".resources"), FileMode.Open)))
             {
-                //foreach (Entry entry in entryCollection)
-                //{
-                    Model.ExtractFile(directory, reader);
-                    //CurrentProgress = (int)(currentSize * 100.0 / totalSize);
-                //}
+                IEnumerable<ResourcesIndexEntry> entries = Model.Index.Entries.Where(entry => entry.FileSystemName != null);
+                long currentSize = 0;
+                long totalSize = entries.Sum(_ => _.UncompressedSize);
+
+                foreach (ResourcesIndexEntry entry in entries)
+                {
+                    if (reader.BaseStream.Position != (long)entry.Offset)
+                    {
+                        reader.BaseStream.Seek((long)entry.Offset, SeekOrigin.Begin);
+                    }
+
+                    Model.ExtractFile(directory, entry, reader);
+                    CurrentProgress = (int)(currentSize * 100.0 / totalSize);
+                    CurrentFile = entry.InternalName;
+                    currentSize += entry.UncompressedSize;
+                }
             }
         }
 
