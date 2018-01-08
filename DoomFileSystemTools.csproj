@@ -80,6 +80,7 @@
     <Compile Include="Model\DoomBinaryWriter.cs" />
     <Compile Include="Model\DoomEditor.cs" />
     <Compile Include="Model\Extensions.cs" />
+    <Compile Include="Model\ResourcesIndex.cs" />
     <Compile Include="Model\Options.cs" />
     <Compile Include="ViewModel\BaseViewModel.cs" />
     <Compile Include="ViewModel\Commands\AbstractParameterCommand.cs" />
