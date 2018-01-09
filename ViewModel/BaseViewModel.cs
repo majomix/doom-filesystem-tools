@@ -117,11 +117,13 @@ namespace DoomFileSystemTools.ViewModel
         {
             foreach (string file in Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
             {
-                string[] tokens = file.Split(new string[] { directory + @"\" }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string token in tokens)
+                string internalPath = file.Split(new string[] { directory + @"\" }, StringSplitOptions.RemoveEmptyEntries)[0].Replace(@"\", @"/");
                 {
-                    if (!String.IsNullOrWhiteSpace(token))
+                    ResourcesIndexEntry entry = Model.Index.Entries.SingleOrDefault(_ => _.FileSystemName == internalPath);
+                    
+                    if(entry != null)
                     {
+                        entry.Changed = file;
                     }
                 }
             }
@@ -129,28 +131,27 @@ namespace DoomFileSystemTools.ViewModel
 
         public void SaveStructure(string path)
         {
-            using (DoomBinaryReader reader = new DoomBinaryReader(File.Open(LoadedFilePath, FileMode.Open)))
+            using (DoomBinaryWriter resourcesWriter = new DoomBinaryWriter(File.Open(Path.ChangeExtension(LoadedFilePath, ".resources"), FileMode.Append)))
             {
-                using (DoomBinaryWriter writer = new DoomBinaryWriter(File.Open(path, FileMode.Create)))
-                {
-                    //foreach (Entry entry in entries)
-                    //{
-                        Model.SaveDataEntry(reader, writer);
-                        //CurrentProgress = (int)(currentSize * 100.0 / totalSize);
-                        //CurrentFile = entry.Name;
-                    //}
+                IEnumerable<ResourcesIndexEntry> entries = Model.Index.Entries.Where(_ => _.Changed != null);
+                long currentSize = 0;
+                long totalSize = entries.Sum(_ => _.UncompressedSize);
 
-                    Model.SaveIndex(writer);
+                foreach (ResourcesIndexEntry entry in entries)
+                {
+                    Model.SaveDataEntry(entry, resourcesWriter);
+                    CurrentProgress = (int)(currentSize * 100.0 / totalSize);
+                    CurrentFile = entry.Changed;
+                    currentSize += entry.UncompressedSize;
                 }
             }
 
-            OnPropertyChanged("Model");
-        }
+            using (DoomBinaryWriter indexWriter = new DoomBinaryWriter(File.Open(path, FileMode.Create)))
+            {
+                Model.SaveIndex(indexWriter);
+            }
 
-        public string GenerateRandomName()
-        {
-            Random generator = new Random();
-            return Path.ChangeExtension(LoadedFilePath, @".tmp_" + generator.Next().ToString());
+            OnPropertyChanged("Model");
         }
     }
 }

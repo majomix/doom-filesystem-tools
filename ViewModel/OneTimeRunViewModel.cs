@@ -46,6 +46,17 @@ namespace DoomFileSystemTools.ViewModel
 
         public void Import()
         {
+            if (myTargetDirectory != null && Directory.Exists(myTargetDirectory) && LoadedFilePath != null)
+            {
+                LoadStructure();
+                ResolveNewFiles(myTargetDirectory);
+
+                string randomName = LoadedFilePath + "_tmp" + new Random().Next().ToString();
+                SaveStructure(randomName);
+
+                File.Delete(LoadedFilePath);
+                File.Move(randomName, LoadedFilePath);
+            }
         }
 
         private string CreateFullPath(string path, bool isDirectory)

@@ -63,7 +63,7 @@ namespace DoomFileSystemTools.Model
         public UInt64 Offset { get; set; }
         public UInt32 UncompressedSize { get; set; }
         public UInt32 CompressedSize { get; set; }
-        public UInt64 Zero { get; set; }
+        public UInt32 Zero { get; set; }
         public byte PatchNumber { get; set; }
         public string Changed { get; set; }
     }
